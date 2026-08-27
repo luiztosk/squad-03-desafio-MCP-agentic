@@ -8,3 +8,9 @@ pode ser usado como base os projetos ollama-chat e ollama-tools
 
 # Autenticação
 Login/Senha + JWTminimo
+
+
+# projetos `ollama-chat` e `ollama-tools`
+
+baseados nos exemplos do Pedro Leale: 
+https://github.com/PedroLeale/agentic-payments-fde-workshops
