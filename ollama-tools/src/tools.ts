@@ -28,6 +28,9 @@ export function listItems(args: { search?: unknown }) {
 export function listCatalog(args: { category?: string }) {
   const q = typeof args.category === 'string' ? args.category.trim().toLowerCase() : ''
   const items = q ? CATALOG.filter((i) => i.category?.toLowerCase() === q) : CATALOG
+  if (items.length === 0) {
+    throw new BadArgs(`categoria nao encontrada: ${q}. Faça novamente a busca sem informar categoria.`)
+  }
   return { count: items.length, items }
 }
 
