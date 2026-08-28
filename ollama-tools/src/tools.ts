@@ -1,11 +1,11 @@
 
-export const CATALOG = [
-  { sku: 'PS5', name: 'PlayStation 5', price: 4799.0, currency: 'BRL' },
-  { sku: 'PCGAMER', name: 'PC Gamer', price: 12499.0, currency: 'BRL' },
-  { sku: 'NOTEWORK', name: 'Notebook de trabalho', price: 6299.0, currency: 'BRL' },
-  { sku: 'MONITOR', name: 'Monitor 27" 144Hz', price: 1899.9, currency: 'BRL' },
-  { sku: 'CADEIRA', name: 'Cadeira gamer', price: 1299.0, currency: 'BRL' },
-  { sku: 'LHC', name: 'Acelerador de partículas de bancada (seminovo, poucos prótons rodados)', price: 4200000000.0, currency: 'BRL' },
+export const CATALOG:{ sku: string, name: string, price: number, currency: string, category?: string, estoque?: number }[] = [
+  { sku: 'PS5', name: 'PlayStation 5', price: 4799.0, currency: 'BRL', category: 'game'},
+  { sku: 'PCGAMER', name: 'PC Gamer', price: 12499.0, currency: 'BRL', category: 'PC'},
+  { sku: 'NOTEWORK', name: 'Notebook de trabalho', price: 6299.0, currency: 'BRL', category: 'PC'},
+  { sku: 'MONITOR', name: 'Monitor 27" 144Hz', price: 1899.9, currency: 'BRL', category: 'PC' },
+  { sku: 'CADEIRA', name: 'Cadeira gamer', price: 1299.0, currency: 'BRL', category: 'moveis' },
+  { sku: 'LHC', name: 'Acelerador de partículas de bancada (seminovo, poucos prótons rodados)', price: 4200000000.0, currency: 'BRL', category: 'lab' },
 ]
 
 export const DEFAULT_TZ = 'America/Sao_Paulo'
@@ -22,6 +22,12 @@ export function getTime(args: { timezone?: unknown }) {
 export function listItems(args: { search?: unknown }) {
   const q = typeof args.search === 'string' ? args.search.trim().toLowerCase() : ''
   const items = q ? CATALOG.filter((i) => i.name.toLowerCase().includes(q)) : CATALOG
+  return { count: items.length, items }
+}
+
+export function listCatalog(args: { category?: string }) {
+  const q = typeof args.category === 'string' ? args.category.trim().toLowerCase() : ''
+  const items = q ? CATALOG.filter((i) => i.category?.toLowerCase() === q) : CATALOG
   return { count: items.length, items }
 }
 

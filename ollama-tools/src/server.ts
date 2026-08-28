@@ -5,7 +5,7 @@ import bodyParser from 'body-parser'
 import { z } from 'zod'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { DEFAULT_TZ, getTime, listItems } from './tools.ts'
+import { DEFAULT_TZ, getTime, listCatalog, listItems } from './tools.ts'
 
 const PORT = Number(process.env.PORT ?? 4000)
 
@@ -31,6 +31,17 @@ mcp.registerTool(
     },
   },
   async ({ search }) => json(listItems({ search }))
+)
+
+mcp.registerTool(
+  'list_catalog',
+  {
+    description: 'Lista os itens à venda e seus preços em reais. Opcionalmente filtra por categoria.',
+    inputSchema: {
+      category: z.string().optional().describe('Categoria do item, opcional.'),
+    },
+  },
+  async ({ category }) => json(listCatalog({ category }))
 )
 
 function json(value: unknown) {
