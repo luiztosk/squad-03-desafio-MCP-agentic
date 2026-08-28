@@ -5,8 +5,8 @@ import bodyParser from 'body-parser'
 import { z } from 'zod'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { DEFAULT_TZ, getTime, listCatalog, searchItems } from './tools.ts'
-import { registrarIntencao } from './tools.ts'
+import { DEFAULT_TZ, getTime, listCatalog, listarCatalogo, searchItems } from './tools.ts'
+import { LIMITE_INICIAL_USUARIO, realizarCompra, registrarIntencao } from './tools.ts'
 import type { RegistroIntencoes } from './tools.ts'
 
 const PORT = Number(process.env.PORT ?? 4000)
@@ -14,6 +14,7 @@ const PORT = Number(process.env.PORT ?? 4000)
 const mcp = new McpServer({ name: 'ollama-tools', version: '1.0.0' })
 
 const registro_intencoes: RegistroIntencoes = []
+const limite_usuario = { restante: LIMITE_INICIAL_USUARIO }
 
 mcp.registerTool(
   'get_time',
@@ -49,15 +50,39 @@ mcp.registerTool(
 )
 
 mcp.registerTool(
+  'listar_catalogo',
+  {
+    description: 'Lista produtos com id, nome, preco, moeda e estoque. Opcionalmente filtra por categoria.',
+    inputSchema: {
+      categoria: z.string().optional().describe('Categoria do produto, opcional.'),
+    },
+  },
+  async ({ categoria }) => json(listarCatalogo({ categoria }))
+)
+
+mcp.registerTool(
   'registrar_intencao',
   {
     description: 'Registra intencao de compra de um item.',
     inputSchema: {
       produto_id: z.string().describe('SKU do produto'),
-      quantidade: z.number().describe('Quantidade do produto')
+      quantidade: z.number().int().positive().describe('Quantidade inteira do produto')
     },
   },
   async ({ produto_id, quantidade }) => json(registrarIntencao(registro_intencoes, { sku: produto_id, quantidade: quantidade }))
+)
+
+mcp.registerTool(
+  'realizar_compra',
+  {
+    description: 'Executa uma compra com base em uma intencao valida previamente registrada.',
+    inputSchema: {
+      intencao_id: z.string().describe('Id da intencao criada por registrar_intencao.'),
+      metodo_pagamento: z.enum(['cartao', 'pix']).describe('Metodo de pagamento aceito: cartao ou pix'),
+    },
+  },
+  async ({ intencao_id, metodo_pagamento }) =>
+    json(realizarCompra(registro_intencoes, { intencao_id, metodo_pagamento }, limite_usuario))
 )
 
 function json(value: unknown) {
