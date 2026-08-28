@@ -1,0 +1,327 @@
+{
+  "info": {
+    "_postman_id": "b5e782dc-4765-4bcf-ae74-ac88f9fc6329",
+    "name": "squad 03 desafio",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57624644"
+  },
+  "item": [
+    {
+      "name": "MCP",
+      "item": [
+        {
+          "name": "initialize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "User-Agent",
+                "value": "node",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"method\": \"initialize\",\n        \"params\": {\n                \"protocolVersion\": \"2025-11-25\",\n                \"capabilities\": {},\n                \"clientInfo\": {\n                        \"name\": \"ollama-chat\",\n                        \"version\": \"1.0.0\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{MCP_URL}}",
+              "host": [
+                "{{MCP_URL}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "tools list",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "User-Agent",
+                "value": "node",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"method\": \"tools/list\",\n        \"jsonrpc\": \"2.0\",\n        \"id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{MCP_URL}}",
+              "host": [
+                "{{MCP_URL}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "tool get_time",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "User-Agent",
+                "value": "node",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                \"name\": \"get_time\",\n                \"arguments\": {\n                        \"timezone\": \"America/Sao_Paulo\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{MCP_URL}}",
+              "host": [
+                "{{MCP_URL}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "tool get_time Copy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "User-Agent",
+                "value": "node",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                \"name\": \"get_time\",\n                \"arguments\": {\n                        \"timezone\": \"Zimbalaue\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{MCP_URL}}",
+              "host": [
+                "{{MCP_URL}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "tool search_items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "User-Agent",
+                "value": "node",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                \"name\": \"search_items\",\n                \"arguments\": {\n                    \"search\": \"pc\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{MCP_URL}}",
+              "host": [
+                "{{MCP_URL}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "tool list_catalog",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "User-Agent",
+                "value": "node",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                \"name\": \"list_catalog\",\n                \"arguments\": {\n                    \"category\": \"pc\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{MCP_URL}}",
+              "host": [
+                "{{MCP_URL}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "tool registrar_intencao",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "User-Agent",
+                "value": "node",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                \"name\": \"registrar_intencao\",\n                \"arguments\": {\n                    \"produto_id\": \"PS5\",\n                    \"quantidade\": 10\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{MCP_URL}}",
+              "host": [
+                "{{MCP_URL}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "tool registrar_intencao Copy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "User-Agent",
+                "value": "node",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                \"name\": \"list_catalog\",\n                \"arguments\": {\n                        \"category\": \"eletrônicos\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{MCP_URL}}",
+              "host": [
+                "{{MCP_URL}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
