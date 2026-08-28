@@ -5,11 +5,15 @@ import bodyParser from 'body-parser'
 import { z } from 'zod'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { DEFAULT_TZ, getTime, listCatalog, listItems } from './tools.ts'
+import { DEFAULT_TZ, getTime, listCatalog, searchItems } from './tools.ts'
+import { registrarIntencao } from './tools.ts'
+import type { RegistroIntencoes } from './tools.ts'
 
 const PORT = Number(process.env.PORT ?? 4000)
 
 const mcp = new McpServer({ name: 'ollama-tools', version: '1.0.0' })
+
+const registro_intencoes: RegistroIntencoes = []
 
 mcp.registerTool(
   'get_time',
@@ -23,14 +27,14 @@ mcp.registerTool(
 )
 
 mcp.registerTool(
-  'list_items',
+  'search_items',
   {
-    description: 'Lista os itens à venda e seus preços em reais. Opcionalmente filtra por nome.',
+    description: 'Filtra por nome os produtos a venda.',
     inputSchema: {
-      search: z.string().optional().describe('Trecho do nome do item, sem diferenciar maiúsculas.'),
+      search: z.string().describe('Trecho do nome do item, sem diferenciar maiúsculas.'),
     },
   },
-  async ({ search }) => json(listItems({ search }))
+  async ({ search }) => json(searchItems({ search }))
 )
 
 mcp.registerTool(
@@ -42,6 +46,18 @@ mcp.registerTool(
     },
   },
   async ({ category }) => json(listCatalog({ category }))
+)
+
+mcp.registerTool(
+  'registrar_intencao',
+  {
+    description: 'Registra intencao de compra de um item.',
+    inputSchema: {
+      produto_id: z.string().describe('SKU do produto'),
+      quantidade: z.number().describe('Quantidade do produto')
+    },
+  },
+  async ({ produto_id, quantidade }) => json(registrarIntencao(registro_intencoes, { sku: produto_id, quantidade: quantidade }))
 )
 
 function json(value: unknown) {
