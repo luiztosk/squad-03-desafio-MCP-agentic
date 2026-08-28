@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { BadArgs, CATALOG, DEFAULT_TZ, getTime, listItems } from './tools.ts'
+import { BadArgs, CATALOG, DEFAULT_TZ, getTime, searchItems } from './tools.ts'
 
 const here = getTime({})
 assert.equal(here.timezone, DEFAULT_TZ)
@@ -10,10 +10,10 @@ assert.match(getTime({ timezone: 'UTC' }).now, /\d{4}/)
 assert.notEqual(getTime({ timezone: 'Asia/Tokyo' }).now, getTime({ timezone: 'America/Sao_Paulo' }).now)
 assert.throws(() => getTime({ timezone: 'Mars/Olympus' }), BadArgs)
 
-assert.equal(listItems({}).count, CATALOG.length)
-assert.equal(listItems({ search: 'playstation' }).items[0].sku, 'PS5')
-assert.equal(listItems({ search: '  Monitor ' }).count, 1)
-assert.equal(listItems({ search: 'unobtainium' }).count, 0)
-assert.equal(listItems({ search: 99 }).count, CATALOG.length)
+assert.equal(searchItems({}).count, CATALOG.length)
+assert.equal(searchItems({ search: 'playstation' }).items[0].sku, 'PS5')
+assert.equal(searchItems({ search: '  Monitor ' }).count, 1)
+assert.equal(searchItems({ search: 'unobtainium' }).count, 0)
+assert.equal(searchItems({ search: 99 }).count, CATALOG.length)
 
 console.log('tools.ts ok')
