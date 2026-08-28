@@ -27,7 +27,7 @@ export function listItems(args: { search?: unknown }) {
 
 export function listCatalog(args: { category?: string }) {
   const q = typeof args.category === 'string' ? args.category.trim().toLowerCase() : ''
-  const items = q ? CATALOG.filter((i) => i.category?.toLowerCase().includes(q)) : CATALOG
+  const items = q ? CATALOG.filter((i) => i.category?.toLowerCase() === q) : CATALOG
   return { count: items.length, items }
 }
 
