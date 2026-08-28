@@ -5,7 +5,7 @@ export const CATALOG:{ sku: string, name: string, price: number, currency: strin
   { sku: 'NOTEWORK', name: 'Notebook de trabalho', price: 6299.0, currency: 'BRL', category: 'PC'},
   { sku: 'MONITOR', name: 'Monitor 27" 144Hz', price: 1899.9, currency: 'BRL', category: 'PC' },
   { sku: 'CADEIRA', name: 'Cadeira gamer', price: 1299.0, currency: 'BRL', category: 'moveis' },
-  { sku: 'LHC', name: 'Acelerador de partículas de bancada (seminovo, poucos prótons rodados)', price: 4200000000.0, currency: 'BRL' },
+  { sku: 'LHC', name: 'Acelerador de partículas de bancada (seminovo, poucos prótons rodados)', price: 4200000000.0, currency: 'BRL', category: 'lab' },
 ]
 
 export const DEFAULT_TZ = 'America/Sao_Paulo'
@@ -26,10 +26,8 @@ export function listItems(args: { search?: unknown }) {
 }
 
 export function listCatalog(args: { category?: string }) {
-  console.log(args)
   const q = typeof args.category === 'string' ? args.category.trim().toLowerCase() : ''
-  console.log('categoria: ', q)
-  const items = q ? CATALOG.filter((i) => i.category?.toLowerCase().includes(q)) : CATALOG
+  const items = q ? CATALOG.filter((i) => i.category?.toLowerCase() === q) : CATALOG
   return { count: items.length, items }
 }
 
