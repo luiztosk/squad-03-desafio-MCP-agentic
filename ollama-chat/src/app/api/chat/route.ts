@@ -2,7 +2,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
-const OLLAMA_TEMP = Number(process.env.OLLAMA_TEMP) ?? 0.7
+const OLLAMA_TEMP = Number(process.env.OLLAMA_TEMP) ?? 0.3
 const MODEL = process.env.OLLAMA_MODEL ?? 'qwen3.5:2b'
 const MCP_URL = process.env.MCP_URL ?? 'http://localhost:4000/mcp'
 const HOLD_MS = 600
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
               messages: convo, 
               tools, 
               options: {'temperature': OLLAMA_TEMP}, 
-              think: false,
+              // think: false,
               stream: true }),
             signal: request.signal,
           })
