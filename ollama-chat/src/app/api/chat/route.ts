@@ -2,6 +2,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
+const OLLAMA_TEMP = Number(process.env.OLLAMA_TEMP) ?? 0.1
 const MODEL = process.env.OLLAMA_MODEL ?? 'qwen3:1.7b'
 const MCP_URL = process.env.MCP_URL ?? 'http://localhost:4000/mcp'
 const HOLD_MS = 600
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
           const res = await fetch(`${OLLAMA_URL}/api/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model: MODEL, messages: convo, tools, stream: true }),
+            body: JSON.stringify({ model: MODEL, messages: convo, tools, options: {'temperature': OLLAMA_TEMP}, stream: true }),
             signal: request.signal,
           })
           if (!res.ok || !res.body) {
