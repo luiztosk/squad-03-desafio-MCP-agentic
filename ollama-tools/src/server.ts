@@ -5,8 +5,7 @@ import bodyParser from 'body-parser'
 import { z } from 'zod'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { DEFAULT_TZ, getTime, listCatalog, searchItems } from './tools.ts'
-import { registrarIntencao } from './tools.ts'
+import { DEFAULT_TZ, getTime, listarCatalogo, realizarCompra, registrarIntencao, searchItems } from './tools.ts'
 import type { RegistroIntencoes } from './tools.ts'
 
 const PORT = Number(process.env.PORT ?? 4000)
@@ -38,14 +37,14 @@ mcp.registerTool(
 )
 
 mcp.registerTool(
-  'list_catalog',
+  'listar_catalogo',
   {
     description: 'Lista os itens à venda e seus preços em reais. Opcionalmente filtra por categoria.',
     inputSchema: {
       category: z.string().optional().describe('Categoria do item, opcional.'),
     },
   },
-  async ({ category }) => json(listCatalog({ category }))
+  async ({ category }) => json(listarCatalogo({ category }))
 )
 
 mcp.registerTool(
@@ -58,6 +57,18 @@ mcp.registerTool(
     },
   },
   async ({ produto_id, quantidade }) => json(registrarIntencao(registro_intencoes, { sku: produto_id, quantidade: quantidade }))
+)
+
+mcp.registerTool(
+  'realizar_compra',
+  {
+    description: 'Executa a compra a partir de uma intenção previamente registrada.',
+    inputSchema: {
+      intencao_id: z.string().describe('Identificador da intenção de compra gerado pelo backend.'),
+      metodo_pagamento: z.enum(['cartao', 'pix']).describe('Método de pagamento escolhido para a compra.')
+    },
+  },
+  async ({ intencao_id, metodo_pagamento }) => json(realizarCompra(registro_intencoes, { intencao_id, metodo_pagamento }))
 )
 
 function json(value: unknown) {
