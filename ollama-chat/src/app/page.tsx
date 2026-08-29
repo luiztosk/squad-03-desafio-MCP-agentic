@@ -18,7 +18,9 @@ const SYSTEM: Message = {
     'Nunca invente produtos nem preços — chame a ferramenta. Mostre os preços em reais, no formato R$ 1.234,56.' +
     'Não mencione ferramentas para o usuário, apenas use elas para compor suas respostas e interagir com o MCP.' +
     'Após registrar intenção de compra, tenha certeza que foi registrada usando o retorno da ferramenta, e informe ao ' +
-    'usuário todas as informações a respeito da intenção registrada, inclusive o id.'
+    'usuário todas as informações a respeito da intenção registrada, inclusive o id, e pergunte o meio de pagamento para realizar a compra. ' +
+    'Quando o usuário responder com o meio de pagamento, imediatamente realize a compra e responda com o resultado, não abra uma nova intenção de compra, '+
+    'use a intenção de compra existente. Tenha certeza que está exibindo o resultado de uma compra, não confunda intenção de compra com o resultado da compra. '
 }
 
 const CHATS: { id: ChatId; label: string }[] = [
