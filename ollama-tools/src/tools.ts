@@ -80,10 +80,6 @@ export function listCatalog(args: { category?: string }) {
   return { count: items.length, items }
 }
 
-export function listarCatalogo(args: { categoria?: string }) {
-  return listCatalog({ category: args.categoria })
-}
-
 export function registrarIntencao(
   registro_intencoes: RegistroIntencoes,
   args: { sku: string, quantidade: number }
@@ -95,7 +91,7 @@ export function registrarIntencao(
       if (!item) {
         throw new BadArgs(`SKU not found: ${q_sku}`)
       }
-      const intencao_id = `int_${randomUUID().toString().slice(0, 8)}`
+      const intencao_id = randomUUID()
       const date_expira: Date = new Date()
       date_expira.setSeconds(date_expira.getSeconds() + INTENCAO_EXPIRA_SEGUNDOS)
       const valor_total = item.price * quantidade
@@ -109,6 +105,7 @@ export function registrarIntencao(
         expira_em: date_expira,
         status: 'pendente'
       })
+      console.log(registro_intencoes)
       return {
         intencao_id,
         produto_id: item.sku,
@@ -119,7 +116,7 @@ export function registrarIntencao(
         expira_em: date_expira.toISOString()
       }
     } catch {
-        throw new BadArgs(`SKU não encontrado: ${q_sku}. Você, deve consultar o catálogo você mesmo usando suas ferramentas, não peça ao usuário.`)
+        throw new BadArgs(`SKU não encontrado: ${q_sku}. Você, vendedor, deve consultar o catálogo você mesmo usando suas ferramentas, não peça ao usuário.`)
     }
 }
 
