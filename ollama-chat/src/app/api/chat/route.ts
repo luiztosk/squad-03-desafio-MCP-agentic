@@ -71,8 +71,9 @@ export async function POST(request: Request) {
               messages: convo, 
               tools, 
               options: {'temperature': OLLAMA_TEMP}, 
-              // think: false,
-              stream: true }),
+              think: false,
+              stream: true 
+            }),
             signal: request.signal,
           })
           if (!res.ok || !res.body) {
