@@ -5,6 +5,14 @@ https://github.com/PedroLeale/agentic-payments-fde-workshops/blob/main/docs/desa
 
 pode ser usado como base os projetos ollama-chat e ollama-tools
 
+# Etapas do desenvolvimento
+
+## Milestone 1: MCP minimo funcionando
+> tag: `v0.0.1`
+screenshot do fluxo `listar_catalogo` -> `registrar_intencao` -> `realizar_compra`
+<img width="1174" height="1965" alt="image" src="https://github.com/user-attachments/assets/4e4886bd-528c-4c10-913f-7d151278a201" />
+
+
 # Autenticação
 Login/Senha + JWTminimo
 
