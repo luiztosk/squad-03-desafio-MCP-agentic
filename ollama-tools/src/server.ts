@@ -5,7 +5,7 @@ import bodyParser from 'body-parser'
 import { z } from 'zod'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { DEFAULT_TZ, getTime, listCatalog, listarCatalogo, realizarCompra, registrarIntencao, searchItems } from './tools.ts'
+import { DEFAULT_TZ, getTime, listCatalog, realizarCompra, registrarIntencao, searchItems } from './tools.ts'
 import type { RegistroIntencoes } from './tools.ts'
 
 const PORT = Number(process.env.PORT ?? 4000)
@@ -44,18 +44,7 @@ mcp.registerTool(
       categoria: z.string().optional().describe('Categoria do item, opcional.'),
     },
   },
-  async ({ categoria }) => json(listarCatalogo({ categoria }))
-)
-
-mcp.registerTool(
-  'list_catalog',
-  {
-    description: 'Alias de listar_catalogo para compatibilidade com a implementação anterior.',
-    inputSchema: {
-      category: z.string().optional().describe('Categoria do item, opcional.'),
-    },
-  },
-  async ({ category }) => json(listCatalog({ category }))
+  async ({ categoria }) => json(listCatalog({ category: categoria }))
 )
 
 mcp.registerTool(

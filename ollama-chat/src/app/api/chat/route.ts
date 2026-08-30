@@ -2,12 +2,13 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
-const MODEL = process.env.OLLAMA_MODEL ?? 'qwen3:1.7b'
+const OLLAMA_TEMP = Number(process.env.OLLAMA_TEMP) ?? 0.7
+const MODEL = process.env.OLLAMA_MODEL ?? 'qwen3.5:2b'
 const MCP_URL = process.env.MCP_URL ?? 'http://localhost:4000/mcp'
 const HOLD_MS = 600
 const MAX_ROUNDS = 4
 
-type Message = { role: string; content: string; tool_calls?: ToolCall[] }
+type Message = { role: string; content: string; tool_calls?: ToolCall[], tool_name?: string }
 type ToolCall = { function: { name: string; arguments: Record<string, unknown> } }
 
 async function connect() {
@@ -65,7 +66,13 @@ export async function POST(request: Request) {
           const res = await fetch(`${OLLAMA_URL}/api/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model: MODEL, messages: convo, tools, stream: true }),
+            body: JSON.stringify({ 
+              model: MODEL, 
+              messages: convo, 
+              tools, 
+              options: {'temperature': OLLAMA_TEMP}, 
+              think: false,
+              stream: true }),
             signal: request.signal,
           })
           if (!res.ok || !res.body) {
@@ -124,7 +131,7 @@ export async function POST(request: Request) {
 
           for (const call of calls) {
             const result = client ? await runTool(client, call) : { error: 'no tool server' }
-            convo.push({ role: 'tool', content: JSON.stringify(result) })
+            convo.push({ role: 'tool', content: JSON.stringify(result), tool_name: call.function.name })
             line({ tool: { name: call.function.name, arguments: call.function.arguments, result } })
           }
         }
