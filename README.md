@@ -7,6 +7,11 @@ pode ser usado como base os projetos ollama-chat e ollama-tools
 
 # Etapas do desenvolvimento
 
+## modelo escolhido: Qwen3.5 2B no Ollama local
+```bash
+ollama pull qwen3.5:2b
+```
+
 ## Milestone 1: MCP minimo funcionando
 > tag: `v0.0.1`
 screenshot do fluxo `listar_catalogo` -> `registrar_intencao` -> `realizar_compra`
