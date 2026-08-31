@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRef, useState } from 'react'
 import Markdown from 'react-markdown'
 
 type Role = 'system' | 'user' | 'assistant'
@@ -34,7 +33,6 @@ const CHATS: { id: ChatId; label: string }[] = [
 ]
 
 export default function Page() {
-  const router = useRouter()
   const [chats, setChats] = useState<Record<ChatId, Turn[]>>({
     stateless: [],
     withHistory: [],
@@ -43,38 +41,7 @@ export default function Page() {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [peek, setPeek] = useState<number | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-
-  useEffect(() => {
-    async function ensureAuth() {
-      const token = localStorage.getItem('chat-token')
-      if (!token) {
-        router.replace('/login')
-        return
-      }
-
-      try {
-        const response = await fetch('/api/auth', {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        if (!response.ok) {
-          localStorage.removeItem('chat-token')
-          router.replace('/login')
-          return
-        }
-      } catch {
-        localStorage.removeItem('chat-token')
-        router.replace('/login')
-        return
-      }
-
-      setIsAuthenticated(true)
-    }
-
-    ensureAuth()
-  }, [router])
 
   const messages = chats[active]
 
@@ -92,7 +59,7 @@ export default function Page() {
 
   async function send(e: { preventDefault(): void }) {
     e.preventDefault()
-    if (!input.trim() || busy || !isAuthenticated) return
+    if (!input.trim() || busy) return
 
     const id = active
     const user: Message = { role: 'user', content: input }
@@ -107,13 +74,9 @@ export default function Page() {
     setBusy(true)
 
     try {
-      const token = localStorage.getItem('chat-token')
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : '',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: payload }),
       })
       if (!res.ok || !res.body) throw new Error(await res.text())
@@ -147,42 +110,25 @@ export default function Page() {
     }
   }
 
-  if (!isAuthenticated) {
-    return null
-  }
-
   return (
     <main className="mx-auto flex h-screen max-w-2xl flex-col gap-4 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-2">
-          {CHATS.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => {
-                setActive(c.id)
-                setPeek(null)
-              }}
-              className={
-                c.id === active
-                  ? 'rounded bg-blue-600 px-3 py-2 text-sm text-white'
-                  : 'rounded border px-3 py-2 text-sm'
-              }
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            localStorage.removeItem('chat-token')
-            router.push('/login')
-          }}
-          className="rounded border px-3 py-2 text-sm"
-        >
-          Sair
-        </button>
+      <div className="flex gap-2">
+        {CHATS.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => {
+              setActive(c.id)
+              setPeek(null)
+            }}
+            className={
+              c.id === active
+                ? 'rounded bg-blue-600 px-3 py-2 text-sm text-white'
+                : 'rounded border px-3 py-2 text-sm'
+            }
+          >
+            {c.label}
+          </button>
+        ))}
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto">

@@ -1,4 +1,3 @@
-import { createHmac, timingSafeEqual } from 'node:crypto'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 
@@ -11,43 +10,6 @@ const MAX_ROUNDS = 4
 
 type Message = { role: string; content: string; tool_calls?: ToolCall[], tool_name?: string }
 type ToolCall = { function: { name: string; arguments: Record<string, unknown> } }
-
-const AUTH_SECRET = process.env.AUTH_SECRET ?? 'squad-03-dev-secret'
-
-function toBase64Url(value: string) {
-  return Buffer.from(value).toString('base64url')
-}
-
-function fromBase64Url(value: string) {
-  return Buffer.from(value, 'base64url').toString('utf8')
-}
-
-function verifyToken(token: string | null) {
-  if (!token) return null
-
-  const parts = token.split('.')
-  if (parts.length !== 3) return null
-
-  const [headerPart, payloadPart, signaturePart] = parts
-  const expectedSignature = createHmac('sha256', AUTH_SECRET)
-    .update(`${headerPart}.${payloadPart}`)
-    .digest()
-
-  const providedSignature = Buffer.from(signaturePart, 'base64url')
-
-  if (expectedSignature.length !== providedSignature.length) return null
-
-  if (!timingSafeEqual(expectedSignature, providedSignature)) return null
-
-  try {
-    const payload = JSON.parse(fromBase64Url(payloadPart)) as { sub?: string; exp?: number }
-    if (!payload.sub) return null
-    if (typeof payload.exp === 'number' && Date.now() > payload.exp) return null
-    return payload.sub
-  } catch {
-    return null
-  }
-}
 
 async function connect() {
   const client = new Client({ name: 'ollama-chat', version: '1.0.0' })
@@ -78,13 +40,6 @@ async function runTool(client: Client, call: ToolCall) {
 }
 
 export async function POST(request: Request) {
-  const authorization = request.headers.get('authorization') ?? ''
-  const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : null
-
-  if (!verifyToken(token)) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const { messages } = await request.json()
   if (!Array.isArray(messages) || messages.length === 0) {
     return Response.json({ error: 'messages must be a non-empty array' }, { status: 400 })
