@@ -70,8 +70,10 @@ export async function POST(request: Request) {
               model: MODEL, 
               messages: convo, 
               tools, 
-              options: {'temperature': OLLAMA_TEMP}, 
-              think: false,
+              options: {
+                'temperature': OLLAMA_TEMP,
+                'num_ctx': 16000
+              }, 
               stream: true 
             }),
             signal: request.signal,
