@@ -12,8 +12,9 @@ export const CATALOG:{ sku: string, name: string, price: number, currency: strin
 export const DEFAULT_TZ = 'America/Sao_Paulo'
 export const INTENCAO_EXPIRA_SEGUNDOS = 180
 
-export const USUARIOS: { usuario_id: string; nome: string; limite: number; gasto_total: number }[] = [
-  { usuario_id: 'user_demo', nome: 'Usuário Demo', limite: 5000, gasto_total: 0 }
+export const USUARIOS: { usuario_id: string; limite: number; gasto_total: number }[] = [
+  { usuario_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', limite: 5000, gasto_total: 0 }, // usuario 5k de limite
+  { usuario_id: '9c76c27f-aa6e-4fe9-9bf7-e78b655b379d', limite: 30000, gasto_total: 0 } // usuario 30k de limite
 ]
 
 export type registrarIntencaoResponse = {
@@ -82,7 +83,7 @@ export function listCatalog(args: { category?: string }) {
 
 export function registrarIntencao(
   registro_intencoes: RegistroIntencoes,
-  args: { sku: string, quantidade: number }
+  args: { sku: string, quantidade: number, usuario_id: string }
 ): registrarIntencaoResponse {
     const q_sku = typeof args.sku === 'string' ? args.sku.trim().toLowerCase() : ''
     const quantidade = typeof args.quantidade === 'number' && Number.isFinite(args.quantidade) && args.quantidade > 0 ? Math.floor(args.quantidade) : 0
@@ -97,7 +98,7 @@ export function registrarIntencao(
       const valor_total = item.price * quantidade
       registro_intencoes.push({
         intencao_id,
-        usuario_id: USUARIOS[0].usuario_id,
+        usuario_id: args.usuario_id,
         sku: item.sku,
         quantidade,
         valor_total,

@@ -17,7 +17,7 @@ assert.equal(searchItems({ search: 'unobtainium' }).count, 0)
 assert.equal(searchItems({ search: 99 }).count, CATALOG.length)
 
 const registro: any[] = []
-const intencao = registrarIntencao(registro, { sku: 'PS5', quantidade: 1 })
+const intencao = registrarIntencao(registro, { sku: 'PS5', quantidade: 1, usuario_id: USUARIOS[0].usuario_id })
 const compraOk = realizarCompra(registro, { intencao_id: intencao.intencao_id, metodo_pagamento: 'cartao' })
 assert.equal(compraOk.status, 'aprovado')
 assert.equal(compraOk.valor, intencao.valor_total)
@@ -33,7 +33,7 @@ assert.equal(intencaoInvalida.status, 'recusado')
 assert.equal(intencaoInvalida.erro, 'INTENCAO_INVALIDA')
 
 const registro2: any[] = []
-const intencaoLimitada = registrarIntencao(registro2, { sku: 'MONITOR', quantidade: 10 })
+const intencaoLimitada = registrarIntencao(registro2, { sku: 'MONITOR', quantidade: 10, usuario_id: USUARIOS[0].usuario_id })
 const acimaLimite = realizarCompra(registro2, { intencao_id: intencaoLimitada.intencao_id, metodo_pagamento: 'pix' })
 assert.equal(acimaLimite.status, 'recusado')
 assert.equal(acimaLimite.erro, 'LIMITE_EXCEDIDO')

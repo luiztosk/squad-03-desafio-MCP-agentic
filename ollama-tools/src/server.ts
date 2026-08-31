@@ -53,10 +53,11 @@ mcp.registerTool(
     description: 'Registra a intenção de compra de um item.',
     inputSchema: {
       sku: z.string().describe('SKU do produto'),
-      quantidade: z.number().describe('Quantidade do produto')
+      quantidade: z.number().describe('Quantidade do produto'),
+      usuario_id: z.string().describe('ID do usuário')
     },
   },
-  async ({ sku, quantidade }) => json(registrarIntencao(registro_intencoes, { sku, quantidade }))
+  async ({ sku, quantidade, usuario_id }) => json(registrarIntencao(registro_intencoes, { sku: sku, quantidade, usuario_id }))
 )
 
 mcp.registerTool(
