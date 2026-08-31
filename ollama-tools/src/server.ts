@@ -53,10 +53,11 @@ mcp.registerTool(
     description: 'Registra a intenção de compra de um item.',
     inputSchema: {
       produto_id: z.string().describe('SKU do produto'),
-      quantidade: z.number().describe('Quantidade do produto')
+      quantidade: z.number().describe('Quantidade do produto'),
+      usuario_id: z.string().optional().describe('Identificador do usuário autenticado.')
     },
   },
-  async ({ produto_id, quantidade }) => json(registrarIntencao(registro_intencoes, { sku: produto_id, quantidade: quantidade }))
+  async ({ produto_id, quantidade, usuario_id }) => json(registrarIntencao(registro_intencoes, { sku: produto_id, quantidade: quantidade, usuario_id }))
 )
 
 mcp.registerTool(
@@ -65,10 +66,11 @@ mcp.registerTool(
     description: 'Executa a compra a partir de uma intenção previamente registrada.',
     inputSchema: {
       intencao_id: z.string().describe('Identificador da intenção de compra gerado pelo backend.'),
-      metodo_pagamento: z.enum(['cartao', 'pix']).describe('Método de pagamento escolhido para a compra.')
+      metodo_pagamento: z.enum(['cartao', 'pix']).describe('Método de pagamento escolhido para a compra.'),
+      usuario_id: z.string().optional().describe('Identificador do usuário autenticado.')
     },
   },
-  async ({ intencao_id, metodo_pagamento }) => json(realizarCompra(registro_intencoes, { intencao_id, metodo_pagamento }))
+  async ({ intencao_id, metodo_pagamento, usuario_id }) => json(realizarCompra(registro_intencoes, { intencao_id, metodo_pagamento, usuario_id }))
 )
 
 function json(value: unknown) {

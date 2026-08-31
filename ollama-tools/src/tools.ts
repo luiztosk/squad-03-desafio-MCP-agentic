@@ -12,8 +12,9 @@ export const CATALOG:{ sku: string, name: string, price: number, currency: strin
 export const DEFAULT_TZ = 'America/Sao_Paulo'
 export const INTENCAO_EXPIRA_SEGUNDOS = 180
 
-export const USUARIOS: { usuario_id: string; nome: string; limite: number; gasto_total: number }[] = [
-  { usuario_id: 'user_demo', nome: 'Usuário Demo', limite: 5000, gasto_total: 0 }
+export const USUARIOS: { usuario_id: string; nome: string; limite_gasto: number; gasto_total: number }[] = [
+  { usuario_id: 'user_demo', nome: 'Usuário Demo', limite_gasto: 5000, gasto_total: 0 },
+  { usuario_id: 'user_vip', nome: 'Usuário VIP', limite_gasto: 10000, gasto_total: 0 }
 ]
 
 export type registrarIntencaoResponse = {
@@ -82,10 +83,15 @@ export function listCatalog(args: { category?: string }) {
 
 export function registrarIntencao(
   registro_intencoes: RegistroIntencoes,
-  args: { sku: string, quantidade: number }
+  args: { sku: string, quantidade: number, usuario_id?: unknown }
 ): registrarIntencaoResponse {
     const q_sku = typeof args.sku === 'string' ? args.sku.trim().toLowerCase() : ''
     const quantidade = typeof args.quantidade === 'number' && Number.isFinite(args.quantidade) && args.quantidade > 0 ? Math.floor(args.quantidade) : 0
+    const usuario_id = typeof args.usuario_id === 'string' && args.usuario_id.trim() ? args.usuario_id.trim() : USUARIOS[0].usuario_id
+    const usuario = USUARIOS.find((u) => u.usuario_id === usuario_id)
+    if (!usuario) {
+      throw new BadArgs('Usuário inválido para registrar intenção de compra.')
+    }
     try {
       const item = CATALOG.find((i) => i.sku.toLowerCase() === q_sku)
       if (!item) {
@@ -97,7 +103,7 @@ export function registrarIntencao(
       const valor_total = item.price * quantidade
       registro_intencoes.push({
         intencao_id,
-        usuario_id: USUARIOS[0].usuario_id,
+        usuario_id: usuario.usuario_id,
         sku: item.sku,
         quantidade,
         valor_total,
@@ -122,13 +128,19 @@ export function registrarIntencao(
 
 export function realizarCompra(
   registro_intencoes: RegistroIntencoes,
-  args: { intencao_id?: unknown, metodo_pagamento?: unknown }
+  args: { intencao_id?: unknown, metodo_pagamento?: unknown, usuario_id?: unknown }
 ): CompraResponse {
   const intencao_id = typeof args.intencao_id === 'string' ? args.intencao_id.trim() : ''
   const metodo = typeof args.metodo_pagamento === 'string' ? args.metodo_pagamento.trim().toLowerCase() : ''
+  const usuario_id = typeof args.usuario_id === 'string' && args.usuario_id.trim() ? args.usuario_id.trim() : USUARIOS[0].usuario_id
+  const usuario = USUARIOS.find((u) => u.usuario_id === usuario_id)
 
   if (!intencao_id) {
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'A intenção informada é inválida.' }
+  }
+
+  if (!usuario) {
+    return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Usuário inválido.' }
   }
 
   const intencao = registro_intencoes.find((item) => item.intencao_id === intencao_id)
@@ -136,7 +148,7 @@ export function realizarCompra(
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Intenção inexistente ou inventada. Use uma intenção válida gerada pelo backend.' }
   }
 
-  if (intencao.usuario_id !== USUARIOS[0].usuario_id) {
+  if (intencao.usuario_id !== usuario.usuario_id) {
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Essa intenção não pertence ao usuário atual.' }
   }
 
@@ -152,9 +164,8 @@ export function realizarCompra(
     return { status: 'recusado', erro: 'METODO_INVALIDO', mensagem: 'Método de pagamento inválido. Use cartao ou pix.' }
   }
 
-  const usuario = USUARIOS[0]
   const gastoAtual = usuario.gasto_total ?? 0
-  if (gastoAtual + intencao.valor_total > usuario.limite) {
+  if (gastoAtual + intencao.valor_total > usuario.limite_gasto) {
     return { status: 'recusado', erro: 'LIMITE_EXCEDIDO', mensagem: `Compra recusada: o valor de R$ ${intencao.valor_total.toFixed(2)} excede o limite restante do usuário.` }
   }
 
@@ -170,7 +181,7 @@ export function realizarCompra(
     intencao_id: intencao.intencao_id,
     valor: intencao.valor_total,
     metodo_pagamento: metodo,
-    limite_restante: usuario.limite - usuario.gasto_total,
+    limite_restante: usuario.limite_gasto - usuario.gasto_total,
     data: intencao.data_pagamento.toISOString(),
   }
 }
