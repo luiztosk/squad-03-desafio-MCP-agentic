@@ -1,0 +1,2 @@
+{"cycle_id":1,"category":"happy","expected_outcome":"aprovado","error":"TypeError: fetch failed"}
+{"cycle_id":2,"category":"happy","expected_outcome":"aprovado","error":"TypeError: fetch failed"}
