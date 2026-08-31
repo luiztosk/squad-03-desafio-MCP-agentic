@@ -26,7 +26,7 @@ export default function Page() {
     stateless: [],
     withHistory: [],
   })
-  const [active, setActive] = useState<ChatId>('stateless')
+  const [active, setActive] = useState<ChatId>('withHistory')
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [peek, setPeek] = useState<number | null>(null)
@@ -105,7 +105,7 @@ export default function Page() {
 
   return (
     <main className="mx-auto flex h-screen max-w-2xl flex-col gap-4 p-4">
-      <div className="flex gap-2">
+      {/* <div className="flex gap-2">
         {CHATS.map((c) => (
           <button
             key={c.id}
@@ -122,14 +122,15 @@ export default function Page() {
             {c.label}
           </button>
         ))}
-      </div>
+      </div> */}
 
       <div className="flex-1 space-y-3 overflow-y-auto">
         {messages.length === 0 && (
           <p className="text-sm text-gray-500">
-            {active === 'withHistory'
+            Envie uma mensagem para iniciar a conversa.
+            {/* {active === 'withHistory'
               ? 'Todas as mensagens anteriores vão junto em cada requisição.'
-              : 'Só a sua última mensagem é enviada — o modelo não vê histórico.'}
+              : 'Só a sua última mensagem é enviada — o modelo não vê histórico.'} */}
           </p>
         )}
         {messages.map((m, i) =>
