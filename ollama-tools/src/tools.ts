@@ -91,7 +91,7 @@ export function registrarIntencao(
       if (!item) {
         throw new BadArgs(`SKU not found: ${q_sku}`)
       }
-      const intencao_id = randomUUID()
+      const intencao_id = `int_${randomUUID().toString().slice(0, 8)}`
       const date_expira: Date = new Date()
       date_expira.setSeconds(date_expira.getSeconds() + INTENCAO_EXPIRA_SEGUNDOS)
       const valor_total = item.price * quantidade

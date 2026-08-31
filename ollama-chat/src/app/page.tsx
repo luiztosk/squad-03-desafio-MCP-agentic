@@ -88,9 +88,13 @@ export default function Page() {
             turn.tools = [...(turn.tools ?? []), chunk.tool]
             reply = ''
           }
+          if (chunk.done) break
           reply += chunk.message?.content ?? ''
           setChat(id, [...next, { role: 'assistant', content: reply }])
         }
+      }
+      if (!reply) {
+        setChat(id, [...next, { role: 'assistant', content: '(resposta vazia do modelo)' }])
       }
     } catch (err) {
       setChat(id, [...next, { role: 'assistant', content: `Erro: ${err}` }])

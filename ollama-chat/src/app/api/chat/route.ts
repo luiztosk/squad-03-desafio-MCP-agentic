@@ -123,6 +123,7 @@ export async function POST(request: Request) {
           }
 
           if (calls.length === 0) {
+            console.log(`round ${round} ended: content_len=${content.length}, calls=${calls.length}`)
             flush()
             line({ done: true })
             break
@@ -130,11 +131,19 @@ export async function POST(request: Request) {
 
           convo.push({ role: 'assistant', content, tool_calls: calls })
 
-          // loga as tools no console pra vermos se o modelo chamou de fato
-          console.log('tool_calls: ', calls)
+          console.log(`round ${round}: tools called: [${calls.map((c) => c.function.name).join(', ')}]`)
 
           for (const call of calls) {
             call.function.name = removeAccents(call.function.name)
+            if (call.function.arguments) {
+              for (const key of Object.keys(call.function.arguments)) {
+                const normalizedKey = removeAccents(key)
+                if (normalizedKey !== key) {
+                  call.function.arguments[normalizedKey] = call.function.arguments[key]
+                  delete call.function.arguments[key]
+                }
+              }
+            }
             const result = client ? await runTool(client, call) : { error: 'no tool server' }
             convo.push({ role: 'tool', content: JSON.stringify(result), tool_name: call.function.name })
             line({ tool: { name: call.function.name, arguments: call.function.arguments, result } })
