@@ -1,5 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { removeAccents } from '../lib/utils'
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
 const OLLAMA_TEMP = Number(process.env.OLLAMA_TEMP) ?? 0.3
@@ -133,6 +134,7 @@ export async function POST(request: Request) {
           console.log('tool_calls: ', calls)
 
           for (const call of calls) {
+            call.function.name = removeAccents(call.function.name)
             const result = client ? await runTool(client, call) : { error: 'no tool server' }
             convo.push({ role: 'tool', content: JSON.stringify(result), tool_name: call.function.name })
             line({ tool: { name: call.function.name, arguments: call.function.arguments, result } })
