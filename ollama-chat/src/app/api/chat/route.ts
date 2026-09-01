@@ -1,5 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { verifyToken } from '@/lib/auth'
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
 const OLLAMA_TEMP = Number(process.env.OLLAMA_TEMP) ?? 0.7
@@ -24,9 +25,10 @@ function toOllamaTools(mcpTools: { name: string; description?: string; inputSche
   }))
 }
 
-async function runTool(client: Client, call: ToolCall) {
+async function runTool(client: Client, call: ToolCall, user: string) {
   try {
-    const out = await client.callTool({ name: call.function.name, arguments: call.function.arguments ?? {} })
+    const args = { ...(call.function.arguments ?? {}), usuario_id: user }
+    const out = await client.callTool({ name: call.function.name, arguments: args })
     const text = Array.isArray(out.content) ? out.content.find((c) => c.type === 'text')?.text : undefined
     if (out.isError) return { error: text ?? 'tool failed' }
     try {
@@ -40,6 +42,14 @@ async function runTool(client: Client, call: ToolCall) {
 }
 
 export async function POST(request: Request) {
+  const authHeader = request.headers.get('authorization') ?? ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null
+  const user = verifyToken(token)
+
+  if (!user) {
+    return Response.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
   const { messages } = await request.json()
   if (!Array.isArray(messages) || messages.length === 0) {
     return Response.json({ error: 'messages must be a non-empty array' }, { status: 400 })
@@ -130,9 +140,9 @@ export async function POST(request: Request) {
           console.log('tool_calls: ', calls)
 
           for (const call of calls) {
-            const result = client ? await runTool(client, call) : { error: 'no tool server' }
+            const result = client ? await runTool(client, call, user) : { error: 'no tool server' }
             convo.push({ role: 'tool', content: JSON.stringify(result), tool_name: call.function.name })
-            line({ tool: { name: call.function.name, arguments: call.function.arguments, result } })
+            line({ tool: { name: call.function.name, arguments: { ...(call.function.arguments ?? {}), usuario_id: user }, result } })
           }
         }
       } catch (err) {
