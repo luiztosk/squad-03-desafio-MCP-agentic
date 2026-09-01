@@ -1,0 +1,14 @@
+{
+  "run_id": "baseline-2026-08-30T16-04-33-101Z",
+  "started_at": "2026-08-30T16:04:33.103Z",
+  "label": "baseline",
+  "model": "qwen3.5:2b",
+  "prompt_source": "/home/luiz/Documents/work/estagio-AIR-compass-uol/exercicios/squad-03-desafio-MCP-agentic/ollama-chat/scripts/cycle-configs.mjs",
+  "prompt_hash": "c7d20b5a",
+  "cycle_count": 30,
+  "cycle_categories": {
+    "happy": 15,
+    "limit_excedido": 10,
+    "invalid_intent": 5
+  }
+}
