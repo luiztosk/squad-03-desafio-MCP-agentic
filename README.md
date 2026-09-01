@@ -12,11 +12,13 @@ repositório para entrega do Desafio final da Squad 03.
 
 ## 1. Uma compra bem-sucedida (`cartao` e `pix`).
 
+![compra-com-cartao](docs/screenshots/compra-com-cartao.png)
 
+![compra-com-pix](docs/screenshots/compra-com-pix.png)
 
 ## 2. Uma tentativa bloqueada por **limite excedido**.
 
-
+![limite-excedido](docs/screenshots/limite-excedido.png)
 
 ## 3. Uma tentativa com **`intencao_id` inválido** sendo recusada.
 
