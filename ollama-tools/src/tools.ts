@@ -123,10 +123,11 @@ export function registrarIntencao(
 
 export function realizarCompra(
   registro_intencoes: RegistroIntencoes,
-  args: { intencao_id?: unknown, metodo_pagamento?: unknown }
+  args: { intencao_id?: unknown, metodo_pagamento?: unknown, usuario_id?: unknown }
 ): CompraResponse {
   const intencao_id = typeof args.intencao_id === 'string' ? args.intencao_id.trim() : ''
   const metodo = typeof args.metodo_pagamento === 'string' ? args.metodo_pagamento.trim().toLowerCase() : ''
+  const usuario_id = typeof args.usuario_id === 'string' ? args.usuario_id.trim() : ''
 
   if (!intencao_id) {
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'A intenção informada é inválida.' }
@@ -137,7 +138,12 @@ export function realizarCompra(
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Intenção inexistente ou inventada. Use uma intenção válida gerada pelo backend.' }
   }
 
-  if (intencao.usuario_id !== USUARIOS[0].usuario_id) {
+  const usuario = USUARIOS.find((item) => item.usuario_id === usuario_id)
+  if (!usuario) {
+    return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Usuário inválido ou não encontrado.' }
+  }
+
+  if (intencao.usuario_id !== usuario.usuario_id) {
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Essa intenção não pertence ao usuário atual.' }
   }
 
@@ -153,7 +159,6 @@ export function realizarCompra(
     return { status: 'recusado', erro: 'METODO_INVALIDO', mensagem: 'Método de pagamento inválido. Use cartao ou pix.' }
   }
 
-  const usuario = USUARIOS[0]
   const gastoAtual = usuario.gasto_total ?? 0
   if (gastoAtual + intencao.valor_total > usuario.limite) {
     return { status: 'recusado', erro: 'LIMITE_EXCEDIDO', mensagem: `Compra recusada: o valor de R$ ${intencao.valor_total.toFixed(2)} excede o limite restante do usuário.` }
