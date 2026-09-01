@@ -13,8 +13,9 @@ export const DEFAULT_TZ = 'America/Sao_Paulo'
 export const INTENCAO_EXPIRA_SEGUNDOS = 180
 export const DEMO_USER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 
-export const USUARIOS: { usuario_id: string; nome: string; limite: number; gasto_total: number }[] = [
-  { usuario_id: DEMO_USER_ID, nome: 'Usuário Demo', limite: 5000, gasto_total: 0 }
+export const USUARIOS: { usuario_id: string; limite: number; gasto_total: number }[] = [
+  { usuario_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', limite: 5000, gasto_total: 0 }, // usuario 5k de limite
+  { usuario_id: '9c76c27f-aa6e-4fe9-9bf7-e78b655b379d', limite: 30000, gasto_total: 0 } // usuario 30k de limite
 ]
 
 export type registrarIntencaoResponse = {
@@ -99,7 +100,7 @@ export function registrarIntencao(
       if (!item) {
         throw new BadArgs(`SKU not found: ${q_sku}`)
       }
-      const intencao_id = randomUUID()
+      const intencao_id = `int_${randomUUID().toString().slice(0, 8)}`
       const date_expira: Date = new Date()
       date_expira.setSeconds(date_expira.getSeconds() + INTENCAO_EXPIRA_SEGUNDOS)
       const valor_total = item.price * quantidade
