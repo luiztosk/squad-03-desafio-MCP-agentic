@@ -151,6 +151,11 @@ export function realizarCompra(
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Intenção inexistente ou inventada. Use uma intenção válida gerada pelo backend.' }
   }
 
+  const usuario = USUARIOS.find((item) => item.usuario_id === usuario_id)
+  if (!usuario) {
+    return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Usuário inválido ou não encontrado.' }
+  }
+
   if (intencao.usuario_id !== usuario.usuario_id) {
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Essa intenção não pertence ao usuário atual.' }
   }
