@@ -22,6 +22,9 @@ repositório para entrega do Desafio final da Squad 03.
 
 ## 3. Uma tentativa com **`intencao_id` inválido** sendo recusada.
 
+> NOTA: Como o modelo se recusou a enviar um `intencao_id` inexistente ao MCP, fizemos este teste diretamente pelo Postman, usando `int_1234` como parâmetro, e no retorno vemos a recusa:
+
+![intencao_invalida](docs/screenshots/intencao_invalida.png)
 
 
 # como rodar o projeto:
