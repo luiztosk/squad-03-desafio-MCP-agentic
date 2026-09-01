@@ -11,6 +11,7 @@ export const CATALOG:{ sku: string, name: string, price: number, currency: strin
 
 export const DEFAULT_TZ = 'America/Sao_Paulo'
 export const INTENCAO_EXPIRA_SEGUNDOS = 180
+export const DEMO_USER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 
 export const USUARIOS: { usuario_id: string; limite: number; gasto_total: number }[] = [
   { usuario_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', limite: 5000, gasto_total: 0 }, // usuario 5k de limite
@@ -83,10 +84,17 @@ export function listCatalog(args: { category?: string }) {
 
 export function registrarIntencao(
   registro_intencoes: RegistroIntencoes,
-  args: { sku: string, quantidade: number, usuario_id: string }
+  args: { sku: string, quantidade: number, usuario_id?: string }
 ): registrarIntencaoResponse {
     const q_sku = typeof args.sku === 'string' ? args.sku.trim().toLowerCase() : ''
     const quantidade = typeof args.quantidade === 'number' && Number.isFinite(args.quantidade) && args.quantidade > 0 ? Math.floor(args.quantidade) : 0
+    const usuario_id = typeof args.usuario_id === 'string' && args.usuario_id.trim() ? args.usuario_id.trim() : USUARIOS[0].usuario_id
+    const usuario = USUARIOS.find((u) => u.usuario_id === usuario_id)
+
+    if (!usuario) {
+      throw new BadArgs('Usuário autenticado inválido para registrar intenção de compra.')
+    }
+
     try {
       const item = CATALOG.find((i) => i.sku.toLowerCase() === q_sku)
       if (!item) {
@@ -98,7 +106,7 @@ export function registrarIntencao(
       const valor_total = item.price * quantidade
       registro_intencoes.push({
         intencao_id,
-        usuario_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // mudar para args.usuario_id, quando estiver disponivel no front
+        usuario_id: usuario.usuario_id,
         sku: item.sku,
         quantidade,
         valor_total,
@@ -127,10 +135,15 @@ export function realizarCompra(
 ): CompraResponse {
   const intencao_id = typeof args.intencao_id === 'string' ? args.intencao_id.trim() : ''
   const metodo = typeof args.metodo_pagamento === 'string' ? args.metodo_pagamento.trim().toLowerCase() : ''
-  const usuario_id = typeof args.usuario_id === 'string' ? args.usuario_id.trim() : ''
+  const usuario_id = typeof args.usuario_id === 'string' && args.usuario_id.trim() ? args.usuario_id.trim() : USUARIOS[0].usuario_id
+  const usuario = USUARIOS.find((u) => u.usuario_id === usuario_id)
 
   if (!intencao_id) {
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'A intenção informada é inválida.' }
+  }
+
+  if (!usuario) {
+    return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Usuário autenticado inválido para esta compra.' }
   }
 
   const intencao = registro_intencoes.find((item) => item.intencao_id === intencao_id)

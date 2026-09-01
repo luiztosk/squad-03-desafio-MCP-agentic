@@ -1,6 +1,7 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Markdown from 'react-markdown'
 
 type Role = 'system' | 'user' | 'assistant'
@@ -22,6 +23,7 @@ const CHATS: { id: ChatId; label: string }[] = [
 ]
 
 export default function Page() {
+  const router = useRouter()
   const [chats, setChats] = useState<Record<ChatId, Turn[]>>({
     stateless: [],
     withHistory: [],
@@ -30,8 +32,36 @@ export default function Page() {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [peek, setPeek] = useState<number | null>(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [historyIndex, setHistoryIndex] = useState<number | null>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  useEffect(() => {
+    const token = window.localStorage.getItem('chat-token')
+    if (!token) {
+      router.replace('/login')
+      setCheckingAuth(false)
+      return
+    }
+
+    fetch('/api/auth', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          window.localStorage.removeItem('chat-token')
+          router.replace('/login')
+          return
+        }
+        setIsAuthenticated(true)
+      })
+      .catch(() => {
+        window.localStorage.removeItem('chat-token')
+        router.replace('/login')
+      })
+      .finally(() => setCheckingAuth(false))
+  }, [router])
 
   const messages = chats[active]
   const userMessages = messages.filter((m) => m.role === 'user').map((m) => m.content)
@@ -90,9 +120,13 @@ export default function Page() {
     setBusy(true)
 
     try {
+      const token = window.localStorage.getItem('chat-token')
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ messages: payload }),
       })
       if (!res.ok || !res.body) throw new Error(await res.text())
@@ -130,26 +164,32 @@ export default function Page() {
     }
   }
 
+  if (checkingAuth) {
+    return (
+      <main className="flex h-screen items-center justify-center text-sm text-gray-500">
+        Verificando autenticação…
+      </main>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
+
   return (
     <main className="mx-auto flex h-screen max-w-2xl flex-col gap-4 p-4">
-      {/* <div className="flex gap-2">
-        {CHATS.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => {
-              setActive(c.id)
-              setPeek(null)
-            }}
-            className={
-              c.id === active
-                ? 'rounded bg-blue-600 px-3 py-2 text-sm text-white'
-                : 'rounded border px-3 py-2 text-sm'
-            }
-          >
-            {c.label}
-          </button>
-        ))}
-      </div> */}
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            window.localStorage.removeItem('chat-token')
+            router.replace('/login')
+          }}
+          className="rounded border px-3 py-2 text-sm"
+        >
+          Sair
+        </button>
+      </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto">
         {messages.length === 0 && (
