@@ -98,7 +98,7 @@ export function registrarIntencao(
       const valor_total = item.price * quantidade
       registro_intencoes.push({
         intencao_id,
-        usuario_id: args.usuario_id,
+        usuario_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', // mudar para args.usuario_id, quando estiver disponivel no front
         sku: item.sku,
         quantidade,
         valor_total,

@@ -30,9 +30,11 @@ export default function Page() {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [peek, setPeek] = useState<number | null>(null)
+  const [historyIndex, setHistoryIndex] = useState<number | null>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const messages = chats[active]
+  const userMessages = messages.filter((m) => m.role === 'user').map((m) => m.content)
 
   function showPeek(i: number) {
     clearTimeout(closeTimer.current)
@@ -40,6 +42,30 @@ export default function Page() {
   }
   function hidePeek() {
     closeTimer.current = setTimeout(() => setPeek(null), 400)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (userMessages.length === 0) return
+      const nextIndex = historyIndex === null ? userMessages.length - 1 : Math.max(0, historyIndex - 1)
+      setHistoryIndex(nextIndex)
+      setInput(userMessages[nextIndex])
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (userMessages.length === 0) return
+      if (historyIndex === null) return
+      const nextIndex = historyIndex + 1
+      if (nextIndex >= userMessages.length) {
+        setHistoryIndex(null)
+        setInput('')
+      } else {
+        setHistoryIndex(nextIndex)
+        setInput(userMessages[nextIndex])
+      }
+    } else {
+      setHistoryIndex(null)
+    }
   }
 
   function setChat(id: ChatId, next: Turn[]) {
@@ -60,6 +86,7 @@ export default function Page() {
     const next: Turn[] = [...chats[id], turn]
     setChat(id, [...next, { role: 'assistant', content: '' }])
     setInput('')
+    setHistoryIndex(null)
     setBusy(true)
 
     try {
@@ -159,6 +186,7 @@ export default function Page() {
           className="flex-1 rounded border px-3 py-2"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Pergunte alguma coisa…"
         />
         <button className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50" disabled={busy}>
