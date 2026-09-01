@@ -11,9 +11,11 @@ export const CATALOG:{ sku: string, name: string, price: number, currency: strin
 
 export const DEFAULT_TZ = 'America/Sao_Paulo'
 export const INTENCAO_EXPIRA_SEGUNDOS = 180
+export const DEMO_USER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 
-export const USUARIOS: { usuario_id: string; nome: string; limite: number; gasto_total: number }[] = [
-  { usuario_id: 'user_demo', nome: 'Usuário Demo', limite: 5000, gasto_total: 0 }
+export const USUARIOS: { usuario_id: string; limite: number; gasto_total: number }[] = [
+  { usuario_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', limite: 5000, gasto_total: 0 }, // usuario 5k de limite
+  { usuario_id: '9c76c27f-aa6e-4fe9-9bf7-e78b655b379d', limite: 30000, gasto_total: 0 } // usuario 30k de limite
 ]
 
 export type registrarIntencaoResponse = {
@@ -82,22 +84,29 @@ export function listCatalog(args: { category?: string }) {
 
 export function registrarIntencao(
   registro_intencoes: RegistroIntencoes,
-  args: { sku: string, quantidade: number }
+  args: { sku: string, quantidade: number, usuario_id?: string }
 ): registrarIntencaoResponse {
     const q_sku = typeof args.sku === 'string' ? args.sku.trim().toLowerCase() : ''
     const quantidade = typeof args.quantidade === 'number' && Number.isFinite(args.quantidade) && args.quantidade > 0 ? Math.floor(args.quantidade) : 0
+    const usuario_id = typeof args.usuario_id === 'string' && args.usuario_id.trim() ? args.usuario_id.trim() : USUARIOS[0].usuario_id
+    const usuario = USUARIOS.find((u) => u.usuario_id === usuario_id)
+
+    if (!usuario) {
+      throw new BadArgs('Usuário autenticado inválido para registrar intenção de compra.')
+    }
+
     try {
       const item = CATALOG.find((i) => i.sku.toLowerCase() === q_sku)
       if (!item) {
         throw new BadArgs(`SKU not found: ${q_sku}`)
       }
-      const intencao_id = randomUUID()
+      const intencao_id = `int_${randomUUID().toString().slice(0, 8)}`
       const date_expira: Date = new Date()
       date_expira.setSeconds(date_expira.getSeconds() + INTENCAO_EXPIRA_SEGUNDOS)
       const valor_total = item.price * quantidade
       registro_intencoes.push({
         intencao_id,
-        usuario_id: USUARIOS[0].usuario_id,
+        usuario_id: usuario.usuario_id,
         sku: item.sku,
         quantidade,
         valor_total,
@@ -122,13 +131,19 @@ export function registrarIntencao(
 
 export function realizarCompra(
   registro_intencoes: RegistroIntencoes,
-  args: { intencao_id?: unknown, metodo_pagamento?: unknown }
+  args: { intencao_id?: unknown, metodo_pagamento?: unknown, usuario_id?: unknown }
 ): CompraResponse {
   const intencao_id = typeof args.intencao_id === 'string' ? args.intencao_id.trim() : ''
   const metodo = typeof args.metodo_pagamento === 'string' ? args.metodo_pagamento.trim().toLowerCase() : ''
+  const usuario_id = typeof args.usuario_id === 'string' && args.usuario_id.trim() ? args.usuario_id.trim() : USUARIOS[0].usuario_id
+  const usuario = USUARIOS.find((u) => u.usuario_id === usuario_id)
 
   if (!intencao_id) {
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'A intenção informada é inválida.' }
+  }
+
+  if (!usuario) {
+    return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Usuário autenticado inválido para esta compra.' }
   }
 
   const intencao = registro_intencoes.find((item) => item.intencao_id === intencao_id)
@@ -136,7 +151,11 @@ export function realizarCompra(
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Intenção inexistente ou inventada. Use uma intenção válida gerada pelo backend.' }
   }
 
-  if (intencao.usuario_id !== USUARIOS[0].usuario_id) {
+  if (!usuario) {
+    return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Usuário inválido ou não encontrado.' }
+  }
+
+  if (intencao.usuario_id !== usuario.usuario_id) {
     return { status: 'recusado', erro: 'INTENCAO_INVALIDA', mensagem: 'Essa intenção não pertence ao usuário atual.' }
   }
 
@@ -152,7 +171,6 @@ export function realizarCompra(
     return { status: 'recusado', erro: 'METODO_INVALIDO', mensagem: 'Método de pagamento inválido. Use cartao ou pix.' }
   }
 
-  const usuario = USUARIOS[0]
   const gastoAtual = usuario.gasto_total ?? 0
   if (gastoAtual + intencao.valor_total > usuario.limite) {
     return { status: 'recusado', erro: 'LIMITE_EXCEDIDO', mensagem: `Compra recusada: o valor de R$ ${intencao.valor_total.toFixed(2)} excede o limite restante do usuário.` }

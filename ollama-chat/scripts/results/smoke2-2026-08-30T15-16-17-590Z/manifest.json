@@ -1,0 +1,12 @@
+{
+  "run_id": "smoke2-2026-08-30T15-16-17-590Z",
+  "started_at": "2026-08-30T15:16:17.595Z",
+  "label": "smoke2",
+  "model": "qwen3.5:2b",
+  "prompt_source": "/home/luiz/Documents/work/estagio-AIR-compass-uol/exercicios/squad-03-desafio-MCP-agentic/ollama-chat/src/app/prompts/system_prompt.ts",
+  "prompt_hash": "97b319ed",
+  "cycle_count": 2,
+  "cycle_categories": {
+    "happy": 2
+  }
+}

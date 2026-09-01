@@ -1,8 +1,10 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { verifyToken } from '@/lib/auth'
+import { removeAccents } from '../lib/utils'
 
 const OLLAMA_URL = process.env.OLLAMA_URL ?? 'http://localhost:11434'
-const OLLAMA_TEMP = Number(process.env.OLLAMA_TEMP) ?? 0.7
+const OLLAMA_TEMP = Number(process.env.OLLAMA_TEMP) ?? 0.3
 const MODEL = process.env.OLLAMA_MODEL ?? 'qwen3.5:2b'
 const MCP_URL = process.env.MCP_URL ?? 'http://localhost:4000/mcp'
 const HOLD_MS = 600
@@ -24,9 +26,10 @@ function toOllamaTools(mcpTools: { name: string; description?: string; inputSche
   }))
 }
 
-async function runTool(client: Client, call: ToolCall) {
+async function runTool(client: Client, call: ToolCall, user: string) {
   try {
-    const out = await client.callTool({ name: call.function.name, arguments: call.function.arguments ?? {} })
+    const args = { ...(call.function.arguments ?? {}), usuario_id: user }
+    const out = await client.callTool({ name: call.function.name, arguments: args })
     const text = Array.isArray(out.content) ? out.content.find((c) => c.type === 'text')?.text : undefined
     if (out.isError) return { error: text ?? 'tool failed' }
     try {
@@ -40,6 +43,14 @@ async function runTool(client: Client, call: ToolCall) {
 }
 
 export async function POST(request: Request) {
+  const authHeader = request.headers.get('authorization') ?? ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null
+  const user = verifyToken(token)
+
+  if (!user) {
+    return Response.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
   const { messages } = await request.json()
   if (!Array.isArray(messages) || messages.length === 0) {
     return Response.json({ error: 'messages must be a non-empty array' }, { status: 400 })
@@ -70,9 +81,12 @@ export async function POST(request: Request) {
               model: MODEL, 
               messages: convo, 
               tools, 
-              options: {'temperature': OLLAMA_TEMP}, 
-              think: false,
-              stream: true }),
+              options: {
+                'temperature': OLLAMA_TEMP,
+                'num_ctx': 16000
+              }, 
+              stream: true 
+            }),
             signal: request.signal,
           })
           if (!res.ok || !res.body) {
@@ -119,6 +133,7 @@ export async function POST(request: Request) {
           }
 
           if (calls.length === 0) {
+            console.log(`round ${round} ended: content_len=${content.length}, calls=${calls.length}`)
             flush()
             line({ done: true })
             break
@@ -126,13 +141,22 @@ export async function POST(request: Request) {
 
           convo.push({ role: 'assistant', content, tool_calls: calls })
 
-          // loga as tools no console pra vermos se o modelo chamou de fato
-          console.log('tool_calls: ', calls)
+          console.log(`round ${round}: tools called: [${calls.map((c) => c.function.name).join(', ')}]`)
 
           for (const call of calls) {
-            const result = client ? await runTool(client, call) : { error: 'no tool server' }
+            call.function.name = removeAccents(call.function.name)
+            if (call.function.arguments) {
+              for (const key of Object.keys(call.function.arguments)) {
+                const normalizedKey = removeAccents(key)
+                if (normalizedKey !== key) {
+                  call.function.arguments[normalizedKey] = call.function.arguments[key]
+                  delete call.function.arguments[key]
+                }
+              }
+            }
+            const result = client ? await runTool(client, call, user) : { error: 'no tool server' }
             convo.push({ role: 'tool', content: JSON.stringify(result), tool_name: call.function.name })
-            line({ tool: { name: call.function.name, arguments: call.function.arguments, result } })
+            line({ tool: { name: call.function.name, arguments: { ...(call.function.arguments ?? {}), usuario_id: user }, result } })
           }
         }
       } catch (err) {

@@ -1,6 +1,7 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Markdown from 'react-markdown'
 
 type Role = 'system' | 'user' | 'assistant'
@@ -9,22 +10,11 @@ type ToolRun = { name: string; arguments: Record<string, unknown>; result: unkno
 type Turn = Message & { sent?: Message[]; tools?: ToolRun[] }
 type ChatId = 'stateless' | 'withHistory'
 
+import { SYSTEM_PROMPT } from './prompts/system_prompt.ts'
+
 const SYSTEM: Message = {
   role: 'system',
-  content:
-    'Você é um vendedor de uma loja de eletrônicos. Responda SEMPRE em português brasileiro, de forma objetiva e educada. Nunca escreva em inglês. ' +
-    // 'Sempre abra uma conversa pedindo ao usuário digitar `produtos` para acessar o catálogo de produtos. ' +
-    'Avise o usuario que ele pode digitar `catalogo` para acessar o catalogo de produtos. ' +
-    'Fale apenas sobre a loja: produtos, preços, disponibilidade e horário. Se perguntarem outra coisa, diga que só pode ajudar com a loja. ' +
-    'Você tem ferramentas: use get_time para qualquer pergunta sobre data ou hora atual, e demais ferramentas para qualquer pergunta sobre o que está à venda ou quanto custa. ' +
-    'Nunca invente produtos nem preços — chame a ferramenta. Mostre os preços em reais, no formato R$ 1.234,56. ' +
-    'Quando não encontrar produtos no catálogo, tente novamente com o parametro `categoria` vazio. ' +
-    // 'Não mencione ferramentas para o usuário, apenas use elas para compor suas respostas e interagir com o MCP.' +
-    'Após registrar intenção de compra, tenha certeza que foi registrada usando o retorno da ferramenta, e informe ao ' +
-    'usuário todas as informações a respeito da intenção registrada, inclusive o id, e pergunte o meio de pagamento para realizar a compra. ' +
-    'Quando o usuário responder com o meio de pagamento, imediatamente realize a compra e responda com o resultado, não abra uma nova intenção de compra, '+
-    'e se houver erros, explique a mensagem de erro ao usuario. '
-    // 'use a intenção de compra existente. Tenha certeza que está exibindo o resultado de uma compra, não confunda intenção de compra com o resultado da compra. '
+  content: SYSTEM_PROMPT
 }
 
 const CHATS: { id: ChatId; label: string }[] = [
@@ -33,17 +23,48 @@ const CHATS: { id: ChatId; label: string }[] = [
 ]
 
 export default function Page() {
+  const router = useRouter()
   const [chats, setChats] = useState<Record<ChatId, Turn[]>>({
     stateless: [],
     withHistory: [],
   })
-  const [active, setActive] = useState<ChatId>('stateless')
+  const [active, setActive] = useState<ChatId>('withHistory')
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [peek, setPeek] = useState<number | null>(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [historyIndex, setHistoryIndex] = useState<number | null>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
+  useEffect(() => {
+    const token = window.localStorage.getItem('chat-token')
+    if (!token) {
+      router.replace('/login')
+      setCheckingAuth(false)
+      return
+    }
+
+    fetch('/api/auth', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          window.localStorage.removeItem('chat-token')
+          router.replace('/login')
+          return
+        }
+        setIsAuthenticated(true)
+      })
+      .catch(() => {
+        window.localStorage.removeItem('chat-token')
+        router.replace('/login')
+      })
+      .finally(() => setCheckingAuth(false))
+  }, [router])
+
   const messages = chats[active]
+  const userMessages = messages.filter((m) => m.role === 'user').map((m) => m.content)
 
   function showPeek(i: number) {
     clearTimeout(closeTimer.current)
@@ -51,6 +72,30 @@ export default function Page() {
   }
   function hidePeek() {
     closeTimer.current = setTimeout(() => setPeek(null), 400)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (userMessages.length === 0) return
+      const nextIndex = historyIndex === null ? userMessages.length - 1 : Math.max(0, historyIndex - 1)
+      setHistoryIndex(nextIndex)
+      setInput(userMessages[nextIndex])
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (userMessages.length === 0) return
+      if (historyIndex === null) return
+      const nextIndex = historyIndex + 1
+      if (nextIndex >= userMessages.length) {
+        setHistoryIndex(null)
+        setInput('')
+      } else {
+        setHistoryIndex(nextIndex)
+        setInput(userMessages[nextIndex])
+      }
+    } else {
+      setHistoryIndex(null)
+    }
   }
 
   function setChat(id: ChatId, next: Turn[]) {
@@ -71,12 +116,17 @@ export default function Page() {
     const next: Turn[] = [...chats[id], turn]
     setChat(id, [...next, { role: 'assistant', content: '' }])
     setInput('')
+    setHistoryIndex(null)
     setBusy(true)
 
     try {
+      const token = window.localStorage.getItem('chat-token')
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ messages: payload }),
       })
       if (!res.ok || !res.body) throw new Error(await res.text())
@@ -99,9 +149,13 @@ export default function Page() {
             turn.tools = [...(turn.tools ?? []), chunk.tool]
             reply = ''
           }
+          if (chunk.done) break
           reply += chunk.message?.content ?? ''
           setChat(id, [...next, { role: 'assistant', content: reply }])
         }
+      }
+      if (!reply) {
+        setChat(id, [...next, { role: 'assistant', content: '(resposta vazia do modelo)' }])
       }
     } catch (err) {
       setChat(id, [...next, { role: 'assistant', content: `Erro: ${err}` }])
@@ -110,33 +164,40 @@ export default function Page() {
     }
   }
 
+  if (checkingAuth) {
+    return (
+      <main className="flex h-screen items-center justify-center text-sm text-gray-500">
+        Verificando autenticação…
+      </main>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
+
   return (
     <main className="mx-auto flex h-screen max-w-2xl flex-col gap-4 p-4">
-      <div className="flex gap-2">
-        {CHATS.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => {
-              setActive(c.id)
-              setPeek(null)
-            }}
-            className={
-              c.id === active
-                ? 'rounded bg-blue-600 px-3 py-2 text-sm text-white'
-                : 'rounded border px-3 py-2 text-sm'
-            }
-          >
-            {c.label}
-          </button>
-        ))}
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            window.localStorage.removeItem('chat-token')
+            router.replace('/login')
+          }}
+          className="rounded border px-3 py-2 text-sm"
+        >
+          Sair
+        </button>
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto">
         {messages.length === 0 && (
           <p className="text-sm text-gray-500">
-            {active === 'withHistory'
+            Envie uma mensagem para iniciar a conversa.
+            {/* {active === 'withHistory'
               ? 'Todas as mensagens anteriores vão junto em cada requisição.'
-              : 'Só a sua última mensagem é enviada — o modelo não vê histórico.'}
+              : 'Só a sua última mensagem é enviada — o modelo não vê histórico.'} */}
           </p>
         )}
         {messages.map((m, i) =>
@@ -165,6 +226,7 @@ export default function Page() {
           className="flex-1 rounded border px-3 py-2"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Pergunte alguma coisa…"
         />
         <button className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50" disabled={busy}>
