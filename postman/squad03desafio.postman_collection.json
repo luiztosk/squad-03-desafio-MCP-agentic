@@ -127,7 +127,7 @@
           "response": []
         },
         {
-          "name": "tool get_time Copy",
+          "name": "tool get_time timezone invalido",
           "request": {
             "method": "POST",
             "header": [
@@ -266,7 +266,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                \"name\": \"registrar_intencao\",\n                \"arguments\": {\n                    \"produto_id\": \"PS5\",\n                    \"quantidade\": 10,\n                    \"usuario_id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 3\n}",
+              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                \"name\": \"registrar_intencao\",\n                \"arguments\": {\n                    \"sku\": \"PS5\",\n                    \"quantidade\": 10,\n                    \"usuario_id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 3\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -283,7 +283,7 @@
           "response": []
         },
         {
-          "name": "tool registrar_intencao Copy",
+          "name": "tool realizar compra",
           "request": {
             "method": "POST",
             "header": [
@@ -305,7 +305,46 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                \"name\": \"list_catalog\",\n                \"arguments\": {\n                        \"category\": \"eletrônicos\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 2\n}",
+              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                 \"name\": \"realizar_compra\",\n                \"arguments\": {\n                    \"metodo_pagamento\": \"cartao\",\n                    \"usuario_id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n                    \"intencao_id\": \"int_40a3126c\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{MCP_URL}}",
+              "host": [
+                "{{MCP_URL}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "tool realizar compra INTENCAO_INVALIDA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "User-Agent",
+                "value": "node",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n        \"method\": \"tools/call\",\n        \"params\": {\n                 \"name\": \"realizar_compra\",\n                \"arguments\": {\n                    \"metodo_pagamento\": \"cartao\",\n                    \"usuario_id\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n                    \"intencao_id\": \"int_1234\"\n                }\n        },\n        \"jsonrpc\": \"2.0\",\n        \"id\": 3\n}",
               "options": {
                 "raw": {
                   "language": "json"

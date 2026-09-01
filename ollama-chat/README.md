@@ -35,7 +35,7 @@ Suba o servidor de ferramentas **antes** de conversar.
 | Variável | Padrão | O que é |
 | --- | --- | --- |
 | `OLLAMA_URL` | `http://localhost:11434` | Onde o Ollama escuta. |
-| `OLLAMA_MODEL` | `qwen2.5:14b` | Modelo usado. Precisa suportar ferramentas. |
+| `OLLAMA_MODEL` | `qwen3.5:2b` | Modelo usado. Precisa suportar ferramentas. |
 | `MCP_URL` | `http://localhost:4000/mcp` | Servidor MCP com as ferramentas. |
 
 Coloque em `.env.local` se quiser mudar.
